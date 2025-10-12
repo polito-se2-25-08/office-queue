@@ -1,0 +1,12 @@
+# Node modules
+node_modules/
+
+# Environment variables
+.env
+
+# Build output
+dist/
+build/
+
+# Ignore only the root lockfile (backend has its own lockfile to commit)
+/package-lock.json
