@@ -33,8 +33,8 @@
 }
 
 .roles-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  display: flex;
+  justify-content: center;
   gap: 1.5rem;
   margin-bottom: 2rem;
 }
@@ -49,6 +49,9 @@
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   position: relative;
   border: 3px solid transparent;
+  flex: 1;
+  min-width: 250px;
+  max-width: 280px;
 }
 
 .role-card:hover {
