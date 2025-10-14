@@ -1,6 +1,6 @@
 export interface Service {
-    id: string;
+    service_id: number;
     name: string;
-    averageServiceTime: number; 
+ //   averageServiceTime: number; 
 }
     

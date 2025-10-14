@@ -1,7 +1,7 @@
 export interface Ticket {
-    id: string;
-    queueId: string;
-    serviceId: string;
+    ticket_id?: number;
+   // queueId: string;
+    service_id: number;
     number: number;
-    collected_at: Date;
+    collectedAt: Date;
 }

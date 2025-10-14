@@ -1,0 +1,68 @@
+### Get all available services
+GET http://localhost:3001/api/services HTTP/1.1
+
+###
+
+### Create ticket for  (Service 1)
+POST http://localhost:3001/api/tickets HTTP/1.1
+Content-Type: application/json
+
+{
+    "service_id": "1"
+}
+
+###
+
+### Create ticket for  (Service 2)
+POST http://localhost:3001/api/tickets HTTP/1.1
+Content-Type: application/json
+
+{
+    "service_id": "2"
+}
+
+###
+
+### Create ticket for (Service 3)
+POST http://localhost:3001/api/tickets HTTP/1.1
+Content-Type: application/json
+
+{
+    "service_id": "3"
+}
+
+###
+
+### Get ticket details by ID (replace with actual ticket ID from previous response)
+GET http://localhost:3001/api/tickets/3 HTTP/1.1
+
+###
+
+### Error case: Create ticket with missing service_id
+POST http://localhost:3001/api/tickets HTTP/1.1
+Content-Type: application/json
+
+{
+}
+
+###
+
+### Error case: Create ticket with invalid service_id
+POST http://localhost:3001/api/tickets HTTP/1.1
+Content-Type: application/json
+
+{
+    "service_id": "999"
+}
+
+###
+
+### Error case: Get ticket with invalid ID
+GET http://localhost:3001/api/tickets/invalid-ticket-id HTTP/1.1
+
+###
+
+### Health check
+GET http://localhost:3001/health HTTP/1.1
+
+###

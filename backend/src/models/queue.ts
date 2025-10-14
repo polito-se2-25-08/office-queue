@@ -1,6 +1,6 @@
 export interface Queue{
-    id: string;
-    serviceId: string;
+    id: number;
+    service_id: number;
     numberOfPeople: number;
     estimatedWaitingTime: number;
 }
