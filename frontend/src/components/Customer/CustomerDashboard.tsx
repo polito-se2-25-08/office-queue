@@ -1,13 +1,10 @@
-import React, { use, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { newTicket, checkTicket } from "../API";
 import "./CustomerDashboard.css";
 
 interface CustomerDashboardProps {
 	onBackToRoleSelection: () => void;
 }
-
-//ADD THE PAGE THAT INDICATES THE TICKET NUMBER AND DEPENDING IF THE TICKET IS CALLED OR NOT EITHER POLL
-//FOR THE TICKETS TAKEN OR SHOW THE DESK TO GO TO
 
 const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
 	onBackToRoleSelection,
@@ -44,12 +41,12 @@ const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
 							<div className="service-grid">
 								<div className="service-card">
 									<div className="service-icon">📦</div>
-									<h4>Package Services</h4>
-									<p>Send packages, registered mail</p>
+									<h4>Shipping Services</h4>
+									<p>Send packages at the lowest rates</p>
 									<button
 										className="service-button"
 										onClick={() => {
-											setSelectedService("package");
+											setSelectedService("📦 Shipping");
 											setSelectedServiceId(1);
 										}}
 									>
@@ -64,7 +61,7 @@ const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
 									<button
 										className="service-button"
 										onClick={() => {
-											setSelectedService("financial");
+											setSelectedService("💰 Financial");
 											setSelectedServiceId(3);
 										}}
 									>
@@ -79,7 +76,7 @@ const CustomerDashboard: React.FC<CustomerDashboardProps> = ({
 									<button
 										className="service-button"
 										onClick={() => {
-											setSelectedService("document");
+											setSelectedService("📄 Document");
 											setSelectedServiceId(2);
 										}}
 									>
@@ -107,12 +104,16 @@ const TicketPage: React.FC<TicketPageProps> = ({
 	if (!service) return null;
 	const [desk, setDesk] = useState<number | null>(null);
 	const [ticket, setTicket] = useState<number | null>(null);
+	const [estimatedWaitingTime, setEstimatedWaitingTime] = useState<number | null>(
+		null
+	);
 
 	useEffect(() => {
 		const getTicket = async () => {
 			if (!ticket) {
-				const ticketNumber = await newTicket(selectedServiceId);
-				setTicket(ticketNumber.number);
+				const ticketData = await newTicket(selectedServiceId);
+				setTicket(ticketData.number);
+				setEstimatedWaitingTime(ticketData.estimatedWaitingTime);
 			}
 		};
 		getTicket();
@@ -130,19 +131,66 @@ const TicketPage: React.FC<TicketPageProps> = ({
 		checkTicketStatus();
 	}, [ticket]);
 
+	const isAssigned = desk !== null;
+
 	return (
-		<div>
-			<h2 className="welcome-section">Your Ticket</h2>
-			<div className="service-card">
-				<h2>Service: {service}</h2>
-				{ticket == null && <h2>Generating your ticket...</h2>}
-				{ticket != null && <h2>Ticket Number: {ticket}</h2>}
-				{ticket != null && desk == null && (
-					<h2>Waiting for desk assignment...</h2>
+		<section className="ticket-section" aria-labelledby="ticket-heading">
+			<h2 id="ticket-heading" className="ticket-heading">🎟️ Your Ticket</h2>
+
+			<div className="ticket-card" role="status" aria-live="polite">
+				<div className="ticket-top">
+					<div className="ticket-number-block">
+						<span className="ticket-label">Ticket</span>
+						<div className="ticket-number">
+							{ticket == null ? "—" : ticket}
+						</div>
+					</div>
+
+					<div className="ticket-status-block">
+						<span className="ticket-label">Status </span>
+						{ticket == null && (
+							<span className="status-badge pending">Generating…</span>
+						)}
+						{ticket != null && !isAssigned && (
+							<span className="status-badge waiting">Waiting for desk</span>
+						)}
+						{isAssigned && (
+							<span className="status-badge assigned">Assigned</span>
+						)}
+					</div>
+				</div>
+
+				<div className="ticket-divider" aria-hidden="true" />
+
+				<div className="ticket-details">
+					<div className="ticket-detail">
+						<span className="ticket-label">Service</span>
+						<span className="ticket-value service-value">{service}</span>
+					</div>
+
+					{estimatedWaitingTime !== null && (
+						<div className="ticket-detail">
+							<span className="ticket-label">Estimated wait</span>
+							<span className="ticket-value eta-value">⏱️ {estimatedWaitingTime} min</span>
+						</div>
+					)}
+
+					{isAssigned && (
+						<div className="ticket-desk-callout" role="alert" aria-live="assertive">
+							<div className="desk-label">Proceed to desk</div>
+							<div className="desk-number">{desk}</div>
+						</div>
+					)}
+				</div>
+
+				{ticket == null && (
+					<p className="ticket-hint">Please hold on while we generate your ticket…</p>
 				)}
-				{desk && <h2>Go to Desk: {desk}</h2>}
+				{ticket != null && !isAssigned && (
+					<p className="ticket-hint">You’ll be notified here when a desk is available.</p>
+				)}
 			</div>
-		</div>
+		</section>
 	);
 };
 

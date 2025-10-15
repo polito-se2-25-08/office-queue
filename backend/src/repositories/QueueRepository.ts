@@ -1,5 +1,5 @@
 import { supabase } from '../lib/supabase.js';
-import { Queue } from '../models/queue.js';
+import { Queue } from '../models/Queue.js';
 
 export interface IQueueRepository {
   findByservice_id(service_id: number): Promise<Queue | null>;

@@ -1,5 +1,4 @@
-import { v4 as uuidv4 } from "uuid";
-import { Ticket } from "../models/ticket.js";
+import { Ticket } from "../models/Ticket.js";
 import { ITicketRepository } from "../repositories/TicketRepository.js";
 import { IServiceRepository } from "../repositories/ServiceRepository.js";
 import { IQueueRepository } from "../repositories/QueueRepository.js";
@@ -8,7 +7,6 @@ import {
 	GetTicketResponseDTO,
 	ServiceDTO,
 } from "../dto/ticket.dto.js";
-import { supabase } from "../lib/supabase.js";
 
 export class TicketService {
 	constructor(

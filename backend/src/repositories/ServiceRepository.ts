@@ -1,6 +1,6 @@
 // ServiceRepository.ts
 import { supabase } from "../lib/supabase.js";
-import { Service } from "../models/service.js";
+import { Service } from "../models/Service.js";
 
 export interface IServiceRepository {
 	findById(id: number): Promise<Service | null>;
