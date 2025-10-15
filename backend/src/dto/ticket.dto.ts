@@ -11,6 +11,7 @@ export interface TicketDTO {
   serviceName: string;
 //  queueId: string;
   collectedAt: Date; 
+  estimatedWaitingTime?: number;
 }
 
 // Response: Create Ticket
