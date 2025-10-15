@@ -73,8 +73,8 @@ export class TicketController {
     next: NextFunction
   ): Promise<void> => {
     try {
-      const { ticketId } = req.params;
-      const ticket_Id = Number(ticketId);
+      const { ticket_id } = req.params;
+      const ticket_Id = Number(ticket_id);
 
     if (!Number.isInteger(ticket_Id)) {
       res.status(400).json({ success: false, error: 'ticket_id must be an integer' });
@@ -85,6 +85,61 @@ export class TicketController {
       res.status(200).json({
         success: true,
         data: ticket
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  callTicket = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const { ticket_id, desk_id } = req.params;
+      const ticket_Id = Number(ticket_id);
+      const desk_Id = Number(desk_id);
+
+      if (!Number.isInteger(ticket_Id)) {
+        res.status(400).json({ success: false, error: 'ticket_id must be an integer' });
+        return;
+      }
+      if (!Number.isInteger(desk_Id)) {
+        res.status(400).json({ success: false, error: 'desk_id must be an integer' });
+        return;
+      }
+      const ticket = await this.ticketService.callTicket(ticket_Id, desk_Id);
+
+      res.status(200).json({
+        success: true,
+        data: ticket,
+        message: 'Ticket called successfully'
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  serveTicket = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const { ticket_id } = req.params;
+      const ticket_Id = Number(ticket_id);
+
+      if (!Number.isInteger(ticket_Id)) {
+        res.status(400).json({ success: false, error: 'ticket_id must be an integer' });
+        return;
+      }
+      const ticket = await this.ticketService.serveTicket(ticket_Id);
+
+      res.status(200).json({
+        success: true,
+        data: ticket,
+        message: 'Ticket served successfully'
       });
     } catch (error) {
       next(error);

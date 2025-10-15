@@ -1,4 +1,3 @@
-// QueueRepository.ts
 import { supabase } from '../lib/supabase.js';
 import { Queue } from '../models/Queue.js';
 
@@ -31,7 +30,7 @@ export class QueueRepository implements IQueueRepository {
     return queue;
   }
 
-  async updateQueue(service_id: number, ticket: any): Promise<void> {
+  async updateQueue(service_id: number, queue: any): Promise<void> {
     // Fetch current queue values
     const { data, error: fetchError } = await supabase
       .from('queue')
@@ -43,15 +42,12 @@ export class QueueRepository implements IQueueRepository {
       console.error('Error fetching queue:', fetchError);
       throw fetchError;
     }
-
-    const updatedNumberOfPeople = (data?.numberOfPeople ?? 0) + 1;
-    const updatedEstimatedWaitingTime = (data?.estimatedWaitingTime ?? 0) + 5; // Each ticket adds 5 minutes
-
+    
     const { error: updateError } = await supabase
       .from('queue')
       .update({
-        numberOfPeople: updatedNumberOfPeople,
-        estimatedWaitingTime: updatedEstimatedWaitingTime
+        numberOfPeople: queue.position,
+        estimatedWaitingTime: queue.estimatedWaitingTime
       })
       .eq('service_id', service_id);
 

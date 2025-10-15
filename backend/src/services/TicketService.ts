@@ -4,6 +4,7 @@ import { ITicketRepository } from '../repositories/TicketRepository.js';
 import { IServiceRepository } from '../repositories/ServiceRepository.js';
 import { IQueueRepository } from '../repositories/QueueRepository.js';
 import { CreateTicketResponseDTO, GetTicketResponseDTO, ServiceDTO } from '../dto/ticket.dto.js';
+import { supabase } from '../lib/supabase.js';
 
 export class TicketService {
   constructor(
@@ -16,16 +17,16 @@ export class TicketService {
    * Create a new ticket for a selected service
    */
   async createTicket(service_id: number): Promise<CreateTicketResponseDTO> {
-    // 1. Validate service exists
+    // Validate service exists
     const service = await this.serviceRepo.findById(service_id);
     if (!service) {
       throw new Error(`Service with id '${service_id}' not found`);
     }
 
-    // 3. Generate unique ticket number
+    // Generate unique ticket number
     const number = await this.ticketRepo.getNextnumber();
 
-    // 4. Create ticket
+    // Create ticket
     const ticket: Ticket = {
       //ticket_id: uuidv4(),
       //queueId: queue.id,
@@ -34,17 +35,25 @@ export class TicketService {
       collectedAt: new Date()
     };
 
+    // Get current queue values
+    const queue = await this.queueRepo.findByservice_id(service_id);
+    if (!queue) {
+      throw new Error('Queue not found for the service');
+    }
+
     // Update queue of that service
-    await this.queueRepo.updateQueue(service_id, ticket); // For now each service is mapped to a queue
+    await this.queueRepo.updateQueue(service_id, {
+      position: queue.numberOfPeople + 1,
+      estimatedWaitingTime: queue.estimatedWaitingTime + 5
+    }); // For now each service is mapped to a queue
 
     // Get queue to understand the new estimated waiting time
     const updatedQueue = await this.queueRepo.findByservice_id(service_id);
 
-
-    // 5. Save ticket
+    // Save ticket
     await this.ticketRepo.create(ticket);
 
-    // 6. Return ticket details
+    // Return ticket details
     return {
       ticket_id: ticket.ticket_id,
       number: ticket.number,
@@ -81,6 +90,42 @@ export class TicketService {
       //queueId: ticket.queueId,
       collectedAt: ticket.collectedAt
     };
+  }
+
+  async callTicket(ticket_id: number, desk_id: number): Promise<void> {
+    const ticket = await this.ticketRepo.findById(ticket_id);
+    if (!ticket) {
+      throw new Error('Ticket not found');
+    }
+
+    // Put ticket in "served_tickets" table
+    await this.ticketRepo.callTicket(ticket_id, desk_id);
+
+    /* // Remove ticket from "tickets" table
+    await this.ticketRepo.removeFromActiveTickets(ticket_id); */
+
+    const service_id = ticket.service_id;
+    
+    // Get current queue values
+    const queue = await this.queueRepo.findByservice_id(service_id);
+    if (!queue) {
+      throw new Error('Queue not found for the service');
+    }
+    // Update queue: let's assume each served ticket reduces the queue by 1 and estimated time by 5 minutes
+    await this.queueRepo.updateQueue(service_id, {
+      position: queue.numberOfPeople - 1,
+      estimatedWaitingTime: queue.estimatedWaitingTime - 5
+    });
+    return;
+  }
+
+  async serveTicket(ticket_id: number): Promise<void> {
+    const ticket = await this.ticketRepo.findById(ticket_id);
+    if (!ticket) {
+      throw new Error('Ticket not found');
+    }
+
+    this.ticketRepo.serveTicket(ticket_id);
   }
 
   /**

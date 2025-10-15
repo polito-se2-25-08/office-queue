@@ -33,6 +33,16 @@ Content-Type: application/json
 
 ###
 
+### Call ticket with ID 1s at desk 1 
+GET http://localhost:3000/api/tickets/1/call/1 HTTP/1.1
+
+###
+
+### Serve ticket with ID 1
+GET http://localhost:3000/api/tickets/1/serve HTTP/1.1
+
+###
+
 ### Get ticket details by ID (replace with actual ticket ID from previous response)
 GET http://localhost:3000/api/tickets/3 HTTP/1.1
 
