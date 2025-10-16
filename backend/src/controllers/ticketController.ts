@@ -56,7 +56,14 @@ export class TicketController {
 
 			const ticket = await this.ticketService.createTicket(serviceId);
 
-			ticketVector.push(ticket);
+			// Add the ticket to in-memory storage with status
+			const ticketWithStatus = {
+				...ticket,
+				status: 'pending',
+				desk_id: null
+			};
+			
+			ticketVector.push(ticketWithStatus);
 
 			console.log("Created ticket:", ticket);
 
@@ -92,10 +99,20 @@ export class TicketController {
 				return;
 			}
 			const ticket = await this.ticketService.getTicketById(ticket_Id);
+			
+			// Also check in-memory ticketVector for real-time status
+			const memoryTicket = ticketVector.find(t => t.number === ticket_Id);
+			
+			// Merge database data with memory data for real-time status
+			const enhancedTicket = {
+				...ticket,
+				status: memoryTicket?.status || 'pending',
+				desk_id: memoryTicket?.desk_id || null
+			};
 
 			res.status(200).json({
 				success: true,
-				data: ticket,
+				data: enhancedTicket,
 			});
 		} catch (error) {
 			next(error);
@@ -108,44 +125,52 @@ export class TicketController {
 		next: NextFunction
 	): Promise<void> => {
 		try {
-			//the request filter all the tickets in memory that have a specific service (this is a mocked up version in which there's only one desk that does one service)
-      //For this case we will filter one specific service (service_id=2) and do the filtering based on that. We then take the ticket with the lowest number 
-      //(the one that came first) and we remove it from the in-memory storage.
-      //At the end we return the ticket that was called (Probably just number and service are enough).
+			const { desk_id } = req.params;
+			const desk_Id = Number(desk_id);
 
-      //TODO: implement logic and route part
+			if (!Number.isInteger(desk_Id)) {
+				res.status(400).json({
+					success: false,
+					error: "desk_id must be an integer",
+				});
+				return;
+			}
 
+			// Get all pending tickets for services this desk can handle
+			// For now, desk 1 can handle all services (you can make this configurable later)
+			const filteredTickets = ticketVector.filter(
+				(ticket) => ticket.status === 'pending'
+			).sort((a, b) => a.number - b.number);
 
-
-
-			// const { desk_Id } = req.params;
-			// const desk_Id = Number(desk_Id);
-
-			// if (!Number.isInteger(desk_Id)) {
-			// 	res.status(400).json({
-			// 		success: false,
-			// 		error: "desk_Id must be an integer",
-			// 	});
-			// 	return;
-			// }
-
-			// const filteredTickets = ticketVector.filter(
-			// 	(ticket) => ticket.service_id === '2'
-			// ).sort((a, b) => a.number - b.number);
-
-      // if (filteredTickets.length > 0) { 
-      //   counterTicket[0] = filteredTickets[0].number; // Update the current ticket for the desk
-      //   ticketVector = ticketVector.filter(ticket => ticket.number !== counterTicket[0]); // Remove the called ticket from the in-memory storage
-      //   res.status(200).json({
-			// 	success: true,
-			// 	data: { currentTicket: counterTicket[0] },
-			//   });
-      // }
-
-		// 	res.status(200).json({
-		// 		success: true,
-		// 		data: filteredTickets,
-			// });
+			if (filteredTickets.length > 0) { 
+				const nextTicket = filteredTickets[0];
+				
+				// Update the current ticket for the desk
+				counterTicket[desk_Id - 1] = nextTicket.number;
+				
+				// Update ticket status to 'called'
+				const ticketIndex = ticketVector.findIndex(t => t.number === nextTicket.number);
+				if (ticketIndex !== -1) {
+					ticketVector[ticketIndex].status = 'called';
+					ticketVector[ticketIndex].desk_id = desk_Id;
+				}
+				
+				res.status(200).json({
+					success: true,
+					data: { 
+						ticket: nextTicket,
+						currentTicket: nextTicket.number,
+						desk_id: desk_Id 
+					},
+					message: `Ticket ${nextTicket.number} called to desk ${desk_Id}`
+				});
+			} else {
+				res.status(200).json({
+					success: true,
+					data: null,
+					message: "No tickets waiting in queue"
+				});
+			}
 		} catch (error) {
 			next(error);
 		}
@@ -227,4 +252,148 @@ export class TicketController {
 			next(error);
 		}
 	};
+
+	/**
+	 * GET /api/queue/status
+	 * Get current queue status for all services
+	 */
+	getQueueStatus = async (
+		req: Request,
+		res: Response,
+		next: NextFunction
+	): Promise<void> => {
+		try {
+			// Group tickets by service_id and count pending ones
+			const queueStatus = ticketVector
+				.filter(ticket => ticket.status === 'pending')
+				.reduce((acc, ticket) => {
+					if (!acc[ticket.service_id]) {
+						acc[ticket.service_id] = {
+							service_id: ticket.service_id,
+							waiting_count: 0,
+							service_name: this.getServiceName(ticket.service_id)
+						};
+					}
+					acc[ticket.service_id].waiting_count++;
+					return acc;
+				}, {} as Record<number, any>);
+
+			const result = Object.values(queueStatus);
+
+			res.status(200).json({
+				success: true,
+				data: result
+			});
+		} catch (error) {
+			next(error);
+		}
+	};
+
+	/**
+	 * GET /api/desk/:desk_id/current
+	 * Get current ticket being served at a desk
+	 */
+	getCurrentServing = async (
+		req: Request,
+		res: Response,
+		next: NextFunction
+	): Promise<void> => {
+		try {
+			const { desk_id } = req.params;
+			const desk_Id = Number(desk_id);
+
+			if (!Number.isInteger(desk_Id)) {
+				res.status(400).json({
+					success: false,
+					error: "desk_id must be an integer",
+				});
+				return;
+			}
+
+			const currentTicketNumber = counterTicket[desk_Id - 1];
+			
+			if (currentTicketNumber) {
+				const currentTicket = ticketVector.find(t => t.number === currentTicketNumber);
+				
+				res.status(200).json({
+					success: true,
+					data: {
+						ticket: currentTicket,
+						desk_id: desk_Id,
+						service_name: currentTicket ? this.getServiceName(currentTicket.service_id) : null
+					}
+				});
+			} else {
+				res.status(200).json({
+					success: true,
+					data: null,
+					message: "No ticket currently being served"
+				});
+			}
+		} catch (error) {
+			next(error);
+		}
+	};
+
+	/**
+	 * POST /api/desk/:desk_id/complete
+	 * Mark current ticket as completed
+	 */
+	completeCurrentTicket = async (
+		req: Request,
+		res: Response,
+		next: NextFunction
+	): Promise<void> => {
+		try {
+			const { desk_id } = req.params;
+			const desk_Id = Number(desk_id);
+
+			if (!Number.isInteger(desk_Id)) {
+				res.status(400).json({
+					success: false,
+					error: "desk_id must be an integer",
+				});
+				return;
+			}
+
+			const currentTicketNumber = counterTicket[desk_Id - 1];
+			
+			if (currentTicketNumber) {
+				// Find and update ticket status
+				const ticketIndex = ticketVector.findIndex(t => t.number === currentTicketNumber);
+				if (ticketIndex !== -1) {
+					ticketVector[ticketIndex].status = 'completed';
+				}
+				
+				// Clear the counter
+				counterTicket[desk_Id - 1] = 0;
+				
+				res.status(200).json({
+					success: true,
+					data: {
+						completed_ticket: currentTicketNumber,
+						desk_id: desk_Id
+					},
+					message: `Ticket ${currentTicketNumber} completed at desk ${desk_Id}`
+				});
+			} else {
+				res.status(400).json({
+					success: false,
+					error: "No ticket currently being served at this desk"
+				});
+			}
+		} catch (error) {
+			next(error);
+		}
+	};
+
+	// Helper method to get service name by ID
+	private getServiceName(service_id: number): string {
+		const serviceNames: Record<number, string> = {
+			1: "Package Services",
+			2: "Financial Services", 
+			3: "Document Services"
+		};
+		return serviceNames[service_id] || "Unknown Service";
+	}
 }

@@ -55,6 +55,17 @@
   opacity: 0.8;
 }
 
+.message-alert {
+  background: #e3f2fd;
+  border: 1px solid #2196f3;
+  color: #1565c0;
+  padding: 0.75rem;
+  border-radius: 6px;
+  margin-top: 1rem;
+  text-align: center;
+  font-weight: 500;
+}
+
 .counter-section {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -106,6 +117,20 @@
 .call-next-button:hover, .complete-button:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
+}
+
+.call-next-button:disabled, .complete-button:disabled {
+  background: #cccccc;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.no-serving {
+  text-align: center;
+  color: #666;
+  font-style: italic;
+  padding: 1rem 0;
 }
 
 .serving-info {

@@ -44,6 +44,12 @@ app.get("/tickets/:ticket_id", ticketController.getTicket);
 app.get("/tickets/:ticket_id/call/:desk_id", ticketController.callTicket);
 app.get("/tickets/:ticket_id/serve", ticketController.serveTicket);
 
+// Routes for Officer functionality
+app.get("/desk/:desk_id/call-next", ticketController.callNext);
+app.get("/desk/:desk_id/current", ticketController.getCurrentServing);
+app.post("/desk/:desk_id/complete", ticketController.completeCurrentTicket);
+app.get("/queue/status", ticketController.getQueueStatus);
+
 // Health check
 app.get("/health", (_req, res) => {
 	res.status(200).json({ status: "ok" });

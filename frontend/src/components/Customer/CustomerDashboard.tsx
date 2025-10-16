@@ -123,12 +123,31 @@ const TicketPage: React.FC<TicketPageProps> = ({
 		if (!ticket) return;
 
 		const checkTicketStatus = async () => {
-			setTimeout(() => {
-				setDesk(3);
-			}, 3000);
+			try {
+				// Check if this ticket has been called by an officer
+				const response = await fetch(`http://localhost:3000/tickets/${ticket}`);
+				if (response.ok) {
+					const data = await response.json();
+					if (data.success && data.data) {
+						// Check if ticket is called and assigned to a desk
+						const ticketData = data.data;
+						
+						// If ticket has desk_id, it means it was called by an officer
+						if (ticketData.desk_id) {
+							setDesk(ticketData.desk_id);
+						}
+					}
+				}
+			} catch (error) {
+				console.error('Error checking ticket status:', error);
+			}
 		};
 
-		checkTicketStatus();
+		// Poll every 2 seconds to check if ticket has been called
+		const interval = setInterval(checkTicketStatus, 2000);
+		
+		// Cleanup interval on unmount
+		return () => clearInterval(interval);
 	}, [ticket]);
 
 	const isAssigned = desk !== null;
