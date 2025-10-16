@@ -102,6 +102,11 @@ export class TicketController {
 		}
 	};
 
+
+  /**
+	 * GET /api/tickets/call/:desk_id
+	 * Get next ticket for the specified desk
+	 */
 	callNext = async (
 		req: Request,
 		res: Response,
@@ -116,11 +121,11 @@ export class TicketController {
       //TODO: implement logic and route part
 
 
+      //not actually usefull for now since we have only one desk and one service
+			const { desk_Id } = req.params;
+			const desk = Number(desk_Id);
 
-
-			// const { desk_Id } = req.params;
-			// const desk_Id = Number(desk_Id);
-
+      //maybe add a limit to the desk to avoid calling a non existing desk
 			// if (!Number.isInteger(desk_Id)) {
 			// 	res.status(400).json({
 			// 		success: false,
@@ -128,24 +133,33 @@ export class TicketController {
 			// 	});
 			// 	return;
 			// }
+      
+      console.log("Vector of tickets:", ticketVector);
 
-			// const filteredTickets = ticketVector.filter(
-			// 	(ticket) => ticket.service_id === '2'
-			// ).sort((a, b) => a.number - b.number);
-
-      // if (filteredTickets.length > 0) { 
-      //   counterTicket[0] = filteredTickets[0].number; // Update the current ticket for the desk
-      //   ticketVector = ticketVector.filter(ticket => ticket.number !== counterTicket[0]); // Remove the called ticket from the in-memory storage
-      //   res.status(200).json({
-			// 	success: true,
-			// 	data: { currentTicket: counterTicket[0] },
-			//   });
-      // }
-
-		// 	res.status(200).json({
-		// 		success: true,
-		// 		data: filteredTickets,
-			// });
+			const filteredTickets = ticketVector.filter(
+				(ticket) => ticket.service_id === 2
+			).sort((a, b) => a.number - b.number);
+      console.log("Filtered tickets for service 2:", filteredTickets);
+      if (filteredTickets.length > 0) { 
+        // Update the current ticket for the desk
+        counterTicket[desk] = filteredTickets[0].number;
+        // Remove the called ticket from the in-memory storage
+        ticketVector = ticketVector.filter(ticket => ticket.number !== counterTicket[desk]);
+        console.log("Ticket called:", counterTicket[desk]);
+        //update the db (TODO)  
+        res.status(200).json({
+				success: true,
+				data: { currentTicket: counterTicket[desk], service: filteredTickets[0].service_id },
+			  });
+      }
+      // If no tickets are available
+      else {
+        console.log("No tickets available to call");
+        res.status(200).json({
+          success: true,
+          data: { currentTicket: null },
+        });
+      }
 		} catch (error) {
 			next(error);
 		}
@@ -154,7 +168,7 @@ export class TicketController {
   checkCurrentTicket = (ticket_id: number) => {
     //in the real implementation it should check all the desks (for now we have one). If the ticket is in the 
     //counterTicket vector it means that it is being served, so we can return the desk number, otherwise we return null
-    if(counterTicket[0] === ticket_id) {
+    if(counterTicket[1] === ticket_id) {
       return { desk: 1 };
     }
     return null;

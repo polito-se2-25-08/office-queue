@@ -1,11 +1,27 @@
-import React from 'react'
+import React, {useState} from 'react'
 import './OfficerDashboard.css'
+import {callTicket} from '../API'
 
 interface OfficerDashboardProps {
   onBackToRoleSelection: () => void
 }
 
 const OfficerDashboard: React.FC<OfficerDashboardProps> = ({ onBackToRoleSelection }) => {
+  const [currentTicket, setCurrentTicket] = useState<number | null>(null);
+  const [currentService, setCurrentService] = useState<number | null>(null);
+
+  const handleCallNextCustomer = async (deskId: number) => {
+    try {
+      const response = await callTicket(deskId);
+      if (response.data.currentTicket) {
+        setCurrentTicket(response.data.currentTicket);
+        setCurrentService(response.data.service);
+      }
+    } catch (error) {
+      console.error("Error calling next customer:", error);
+    }
+  };
+
   return (
     <div className="officer-dashboard">
       <div className="dashboard-header">
@@ -32,14 +48,14 @@ const OfficerDashboard: React.FC<OfficerDashboardProps> = ({ onBackToRoleSelecti
           
           <div className="next-customer">
             <h3>Next Customer</h3>
-            <button className="call-next-button">Call Next Customer</button>
+            <button className="call-next-button" onClick={() => handleCallNextCustomer(1)}>Call Next Customer</button>
           </div>
           
           <div className="current-serving">
             <h3>Currently Serving</h3>
             <div className="serving-info">
-              <div className="ticket-number">Ticket: A001</div>
-              <div className="service-type">Service: Package Services</div>
+              <div className="ticket-number">Ticket: {currentTicket == null ? "Yet to call" : currentTicket}</div>
+              <div className="service-type">Service: {currentService == null ? "" : currentService}</div>
               <button className="complete-button">Complete Service</button>
             </div>
           </div>

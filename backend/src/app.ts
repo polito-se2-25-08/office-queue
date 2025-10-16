@@ -41,6 +41,8 @@ const ticketController = new TicketController(ticketService);
 app.get("/services", ticketController.getAvailableServices);
 app.post("/tickets", ticketController.createTicket);
 app.get("/tickets/:ticket_id", ticketController.getTicket);
+app.get('/tickets/call/:desk_id', ticketController.callNext);
+//router.get('/tickets/:ticket_id/status', ticketController.checkCurrentTicket);
 app.get("/tickets/:ticket_id/call/:desk_id", ticketController.callTicket);
 app.get("/tickets/:ticket_id/serve", ticketController.serveTicket);
 
