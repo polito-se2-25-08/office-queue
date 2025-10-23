@@ -82,7 +82,7 @@ sections:
   - We shoud use better cominication method and define a working strategy. Also for all that concern tickets.
 
 - Which improvement goals set in the previous retrospective were you able to achieve?
-  - We don't know yet
+  - We don't know yet.
   
 - Which ones you were not able to achieve? Why?
   - Define a common implementation strategy due to the knowledge gap in our team
