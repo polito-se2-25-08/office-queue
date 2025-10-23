@@ -73,7 +73,7 @@ sections:
 
 - What did go wrong in the sprint?
   We didn't define a working strategy, or some ticket management method. 
-  - We worked without any type of comunication about implementation.
+  - We worked without any type of comunication about implementation. We should use a better cooperation.
 
 - What caused your errors in estimation (if any) 
   - The inability to fully understand what our capabilities were.
