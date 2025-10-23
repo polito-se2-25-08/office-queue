@@ -72,17 +72,18 @@ sections:
 ## ASSESSMENT
 
 - What did go wrong in the sprint?
+  We didn't define a working strategy, or some ticket management method. 
+  - We worked without any type of comunication about implementation.
 
-- What caused your errors in estimation (if any)?
+- What caused your errors in estimation (if any) 
+  - The inability to fully understand what our capabilities were.
 
 - What lessons did you learn (both positive and negative) in this sprint?
+  - We shoud use better cominication method and define a working strategy. Also for all that concern tickets.
 
-- Which improvement goals set in the previous retrospective were you able to achieve? 
+- Which improvement goals set in the previous retrospective were you able to achieve?
+  - We don't know yet
   
 - Which ones you were not able to achieve? Why?
+  - Define a common implementation strategy due to the knowledge gap in our team
 
-- Improvement goals for the next sprint and how to achieve them (technical tasks, team coordination, etc.)
-
-  > Propose one or two
-
-- One thing you are proud of as a Team!!
